@@ -1,32 +1,201 @@
-
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Java Course Dashboard</title>
+
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:40px;}
-table{width:100%;border-collapse:collapse;background:white;}
-th,td{padding:10px;border:1px solid #ddd;text-align:center;}
-th{background:#2c3e50;color:white;}
+
+body{
+font-family: Arial;
+background:#f4f6f8;
+padding:40px;
+}
+
+h1{
+text-align:center;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:white;
+padding:20px;
+margin-bottom:25px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.progress{
+height:20px;
+background:#ddd;
+border-radius:10px;
+overflow:hidden;
+margin-top:10px;
+}
+
+.bar{
+height:100%;
+background:#4CAF50;
+width:0%;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ddd;
+text-align:center;
+}
+
+th{
+background:#2c3e50;
+color:white;
+}
+
+.badge{
+font-size:20px;
+margin-top:10px;
+}
+
 </style>
+
 </head>
 
 <body>
 
+<div class="container">
+
 <h1>Java Course Dashboard</h1>
 
-<table id="dashboard">
+<div class="card">
+<h2>Your Progress</h2>
+
+<input id="studentInput" placeholder="Enter your name">
+
+<div class="progress">
+<div class="bar" id="progressBar"></div>
+</div>
+
+<p id="progressText"></p>
+
+<div class="badge" id="badge"></div>
+
+</div>
+
+<div class="card">
+<h2>Leaderboard</h2>
+
+<table>
 <thead>
 <tr>
+<th>Rank</th>
 <th>Student</th>
 <th>Assignments Completed</th>
 </tr>
 </thead>
-<tbody></tbody>
+
+<tbody id="leaderboard"></tbody>
 
 </table>
 
-<script src="script.js"></script>
+</div>
+
+</div>
+
+<script>
+
+const sheetURL = "PASTE_YOUR_CSV_LINK_HERE";
+
+const totalAssignments = 10;
+
+let studentData = {};
+
+fetch(sheetURL)
+.then(res => res.text())
+.then(data => {
+
+const rows = data.split("\n").slice(1);
+
+rows.forEach(row => {
+
+const cols = row.split(",");
+
+const name = cols[1];
+const assignment = cols[3];
+
+if(!studentData[name]){
+studentData[name] = new Set();
+}
+
+studentData[name].add(assignment);
+
+});
+
+buildLeaderboard();
+
+});
+
+function buildLeaderboard(){
+
+const sorted = Object.entries(studentData)
+.map(([name,set]) => [name,set.size])
+.sort((a,b)=>b[1]-a[1]);
+
+const table = document.getElementById("leaderboard");
+
+table.innerHTML="";
+
+sorted.forEach((student,index)=>{
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${index+1}</td>
+<td>${student[0]}</td>
+<td>${student[1]}</td>
+`;
+
+table.appendChild(tr);
+
+});
+
+}
+
+document.getElementById("studentInput").addEventListener("input",function(){
+
+const name=this.value;
+
+if(!studentData[name]) return;
+
+const completed=studentData[name].size;
+
+const percent=(completed/totalAssignments)*100;
+
+document.getElementById("progressBar").style.width=percent+"%";
+
+document.getElementById("progressText").innerText=
+completed+" / "+totalAssignments+" assignments completed";
+
+let badge="";
+
+if(completed>=8) badge="🥇 Java Master";
+else if(completed>=5) badge="🥈 Intermediate";
+else if(completed>=2) badge="🥉 Beginner";
+else badge="🚀 Getting Started";
+
+document.getElementById("badge").innerText=badge;
+
+});
+
+</script>
 
 </body>
 </html>
