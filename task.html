@@ -9,12 +9,12 @@
 body{
 font-family: Arial;
 background:#eef2f7;
-padding:40px;
 margin:0;
+padding:40px;
 }
 
 .card{
-max-width:700px;
+max-width:750px;
 margin:auto;
 background:white;
 padding:25px;
@@ -27,16 +27,16 @@ margin-top:0;
 }
 
 .info{
-margin:10px 0;
+margin:12px 0;
 font-size:16px;
 }
 
-a.link{
+a{
 color:#3498db;
 text-decoration:none;
 }
 
-a.link:hover{
+a:hover{
 text-decoration:underline;
 }
 
@@ -47,9 +47,10 @@ border-radius:8px;
 border:1px solid #ddd;
 }
 
-.notfound{
+.error{
 color:red;
 font-weight:bold;
+margin-top:10px;
 }
 
 </style>
@@ -66,27 +67,25 @@ font-weight:bold;
 
 <p class="info"><b>Submission Time:</b> <span id="time"></span></p>
 
-<p class="info"><b>GitHub Link:</b> 
-<a id="githubLink" class="link" target="_blank"></a>
+<p class="info"><b>GitHub Repository:</b>
+<a id="githubLink" target="_blank"></a>
 </p>
 
-<p class="info"><b>Java File:</b> 
-<a id="javaFile" class="link" target="_blank">Download</a>
+<p class="info"><b>Java File:</b>
+<a id="javaFile" target="_blank">Download</a>
 </p>
 
 <p class="info"><b>Screenshot:</b></p>
 
 <img id="screenshot">
 
-<p id="error" class="notfound"></p>
+<p id="error" class="error"></p>
 
 </div>
 
 <script>
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
-
-
+const SHEET_URL = "YOUR_CSV_LINK_HERE";
 
 const params = new URLSearchParams(window.location.search);
 
@@ -108,14 +107,14 @@ rows.forEach(row => {
 
 const cols = row.split(",");
 
-const time = cols[0];
-const name = cols[1];
-const assignment = cols[3];
-const javaFile = cols[4];
-const github = cols[5];
-const screenshot = cols[6];
+const time = cols[0];      // Timestamp
+const name = cols[1];      // Student Name
+const assignment = cols[3]; // Assignment Name
+const javaFile = cols[4];  // Java File
+const github = cols[5];    // GitHub Link
+const screenshot = cols[6]; // Screenshot
 
-if(name && assignment){
+if(!name || !assignment) return;
 
 if(name.trim() === student.trim() && assignment.trim() === task.trim()){
 
@@ -136,12 +135,12 @@ if(screenshot){
 
 let fileId = "";
 
-// case 1: open?id=
+/* format: open?id= */
 if(screenshot.includes("open?id=")){
 fileId = screenshot.split("open?id=")[1];
 }
 
-// case 2: /file/d/
+/* format: /file/d/ */
 else if(screenshot.includes("/file/d/")){
 fileId = screenshot.split("/file/d/")[1].split("/")[0];
 }
@@ -149,14 +148,17 @@ fileId = screenshot.split("/file/d/")[1].split("/")[0];
 if(fileId){
 document.getElementById("screenshot").src =
 "https://drive.google.com/uc?export=view&id=" + fileId;
-;
 }
 
 }
+
+}
+
 });
 
 if(!found){
-document.getElementById("error").innerText = "No submission found for this task.";
+document.getElementById("error").innerText =
+"No submission found for this task.";
 }
 
 });
