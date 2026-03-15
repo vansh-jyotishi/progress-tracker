@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Task Submission</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#eef2f7;
+padding:40px;
+}
+
+.card{
+max-width:700px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{
+margin-top:0;
+}
+
+.info{
+margin-bottom:10px;
+}
+
+img{
+max-width:100%;
+border-radius:8px;
+margin-top:10px;
+}
+
+a.button{
+display:inline-block;
+padding:10px 15px;
+background:#2c3e50;
+color:white;
+border-radius:6px;
+text-decoration:none;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2 id="taskTitle"></h2>
+
+<p class="info"><b>Student:</b> <span id="studentName"></span></p>
+
+<p class="info"><b>Submission Time:</b> <span id="time"></span></p>
+
+<p class="info"><b>GitHub Link:</b> <a id="githubLink" target="_blank"></a></p>
+
+<p class="info"><b>Java File:</b> <a id="javaFile" target="_blank">Download</a></p>
+
+<p class="info"><b>Screenshot:</b></p>
+
+<img id="screenshot">
+
+</div>
+
+<script>
+
+const SHEET_URL="YOUR_CSV_LINK";
+
+const params=new URLSearchParams(window.location.search);
+
+const student=params.get("student");
+
+const task=params.get("task");
+
+document.getElementById("taskTitle").innerText=task;
+
+document.getElementById("studentName").innerText=student;
+
+fetch(SHEET_URL)
+.then(res=>res.text())
+.then(data=>{
+
+const rows=data.split("\n").slice(1);
+
+rows.forEach(row=>{
+
+const cols=row.split(",");
+
+const time=cols[0];
+const name=cols[1];
+const assignment=cols[3];
+const github=cols[4];
+const javaFile=cols[5];
+const screenshot=cols[6];
+
+if(name===student && assignment===task){
+
+document.getElementById("time").innerText=time;
+
+document.getElementById("githubLink").href=github;
+document.getElementById("githubLink").innerText=github;
+
+document.getElementById("javaFile").href=javaFile;
+
+document.getElementById("screenshot").src=screenshot;
+
+}
+
+});
+
+});
+
+</script>
+
+</body>
+</html>
