@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Java Course Assignment Tracker</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f7fb;
+padding:40px;
+}
+
+h1{
+text-align:center;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+th,td{
+padding:10px;
+border:1px solid #ddd;
+text-align:center;
+}
+
+th{
+background:#2c3e50;
+color:white;
+}
+
+.complete{
+color:green;
+font-size:18px;
+}
+
+.incomplete{
+color:red;
+font-size:18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Java Course Assignment Tracker</h1>
+
+<table id="tracker">
+
+<thead>
+
+<tr>
+<th>Student</th>
+<th>Java Setup</th>
+<th>Hello World</th>
+<th>Circle Program</th>
+<th>Calculator</th>
+<th>GitHub Repo</th>
+</tr>
+
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+<script>
+
+const sheetURL="PASTE_YOUR_CSV_LINK_HERE";
+
+const assignments=[
+"Java Setup",
+"Hello World",
+"Circle Program",
+"Basic Calculator",
+"GitHub Repository"
+];
+
+fetch(sheetURL)
+.then(res=>res.text())
+.then(data=>{
+
+const rows=data.split("\n").slice(1);
+
+let students={};
+
+rows.forEach(row=>{
+
+const cols=row.split(",");
+
+const name=cols[1];
+const assignment=cols[3];
+
+if(!students[name]){
+students[name]=new Set();
+}
+
+students[name].add(assignment);
+
+});
+
+const table=document.querySelector("#tracker tbody");
+
+Object.keys(students).forEach(student=>{
+
+const tr=document.createElement("tr");
+
+let rowHTML=`<td>${student}</td>`;
+
+assignments.forEach(task=>{
+
+if(students[student].has(task)){
+rowHTML+=`<td class="complete">✅</td>`;
+}else{
+rowHTML+=`<td class="incomplete">❌</td>`;
+}
+
+});
+
+tr.innerHTML=rowHTML;
+
+table.appendChild(tr);
+
+});
+
+});
+
+</script>
+
+</body>
+</html>
