@@ -254,8 +254,12 @@ const submitted=students[name][task];
 
 const tr=document.createElement("tr");
 
+const taskLink=submitted
+? `<a href="task.html?student=${encodeURIComponent(name)}&task=${encodeURIComponent(task)}" target="_blank">${task}</a>`
+: task;
+
 tr.innerHTML=`
-<td>${task}</td>
+<td>${taskLink}</td>
 <td>${submitted?"✅ Submitted":"❌ Missing"}</td>
 <td>${submitted?submitted:"-"}</td>
 `;
