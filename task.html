@@ -137,19 +137,23 @@ if(screenshot){
 
 let fileId = "";
 
-/* format: open?id= */
+// open?id=
 if(screenshot.includes("open?id=")){
 fileId = screenshot.split("open?id=")[1];
 }
 
-/* format: /file/d/ */
+// file/d/
 else if(screenshot.includes("/file/d/")){
 fileId = screenshot.split("/file/d/")[1].split("/")[0];
 }
 
 if(fileId){
-document.getElementById("screenshot").src =
-"https://drive.google.com/uc?export=view&id=" + fileId;
+
+const imgUrl =
+"https://drive.google.com/thumbnail?id=" + fileId + "&sz=w1000";
+
+document.getElementById("screenshot").src = imgUrl;
+
 }
 
 }
