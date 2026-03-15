@@ -1,133 +1,223 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Admin Assignment Tracker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Submissions Viewer</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-<style>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
 
-body{
-font-family:Arial;
-background:#f4f6f8;
-padding:40px;
-}
+        .filter-bar {
+            background: var(--surface-color);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--surface-border);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            flex-wrap: wrap;
+        }
 
-h1{text-align:center;}
+        .filter-bar select, .filter-bar input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
 
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-}
+        .filter-bar select:focus, .filter-bar input:focus {
+            border-color: var(--primary-color);
+        }
 
-th,td{
-padding:10px;
-border:1px solid #ddd;
-text-align:center;
-}
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
 
-th{
-background:#2c3e50;
-color:white;
-}
+        .submission-card {
+            background: var(--surface-color);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-.complete{color:green;font-weight:bold;}
-.incomplete{color:red;font-weight:bold;}
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
 
-</style>
+        .card-header {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .assignment-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            align-self: flex-start;
+        }
+
+        .card-body {
+            flex: 1;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .submission-card:hover .image-preview img {
+            transform: scale(1.05);
+        }
+
+        .no-image {
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-footer {
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .action-btn {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+        }
+
+        .action-btn.primary:hover {
+            background: #2563eb;
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>Assignment Tracker</h1>
+    <div class="container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="logo-section" style="gap: 1rem;">
+                <a href="task.html" style="color: var(--text-muted); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 8px; transition: background 0.2s;"><i data-lucide="arrow-left"></i></a>
+                <div>
+                    <h1>Admin Panel</h1>
+                    <p style="color: var(--text-muted);">Visual Submissions Viewer</p>
+                </div>
+            </div>
+            <div id="submission-count" style="font-weight: 600; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 0.5rem 1rem; border-radius: 20px;">
+                0 Submissions
+            </div>
+        </div>
 
-<table id="tracker">
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <i data-lucide="filter" style="color: var(--text-muted);"></i>
+            <select id="filter-student">
+                <option value="ALL">All Students</option>
+            </select>
+            <select id="filter-assignment">
+                <option value="ALL">All Assignments</option>
+            </select>
+        </div>
 
-<thead>
-<tr>
-<th>Student</th>
-<th>Java Setup</th>
-<th>Hello World</th>
-<th>Circle Program</th>
-<th>Calculator</th>
-<th>GitHub Repo</th>
-</tr>
-</thead>
+        <!-- Gallery -->
+        <div class="gallery-grid" id="gallery-container">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
 
-<tbody></tbody>
-
-</table>
-
-<script>
-
-const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
-
-const TASKS=[
-"Java Setup",
-"Hello World",
-"Circle Program",
-"Calculator",
-"GitHub Repo"
-];
-
-let students={};
-
-fetch(SHEET_URL)
-.then(res=>res.text())
-.then(data=>{
-
-const rows=data.split("\n").slice(1);
-
-rows.forEach(row=>{
-
-const cols=row.split(",");
-
-const name=cols[1];
-const assignment=cols[3];
-
-if(!name || !assignment) return;
-
-if(!students[name]){
-students[name]=new Set();
-}
-
-students[name].add(assignment);
-
-});
-
-buildTracker();
-
-});
-
-
-function buildTracker(){
-
-const table=document.querySelector("#tracker tbody");
-
-Object.keys(students).forEach(name=>{
-
-const tr=document.createElement("tr");
-
-let html=`<td>${name}</td>`;
-
-TASKS.forEach(task=>{
-
-if([...students[name]].some(a=>a.toLowerCase().includes(task.toLowerCase()))){
-html+=`<td class="complete">✅</td>`;
-}else{
-html+=`<td class="incomplete">❌</td>`;
-}
-
-});
-
-tr.innerHTML=html;
-
-table.appendChild(tr);
-
-});
-
-}
-
-</script>
-
+    <!-- Custom JS -->
+    <script src="admin.js"></script>
 </body>
 </html>

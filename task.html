@@ -1,80 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Java Course Tasks</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Progress Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PapaParse for CSV processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-<style>
-
-body{
-font-family:Arial;
-background:#f4f6f8;
-padding:40px;
-}
-
-h1{text-align:center;}
-
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-}
-
-th,td{
-padding:12px;
-border:1px solid #ddd;
-}
-
-th{
-background:#2c3e50;
-color:white;
-}
-
-</style>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>Java Course Assignments</h1>
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h2>Syncing Data...</h2>
+    </div>
 
-<table>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i data-lucide="layout-dashboard" color="white"></i>
+                </div>
+                <div>
+                    <h1>Student Leaderboard</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Real-time progress tracker</p>
+                </div>
+            </div>
+            <div id="last-updated" style="color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="clock" size="16"></i>
+                <span>Updated: Just now</span>
+            </div>
+        </header>
 
-<thead>
-<tr>
-<th>Task</th>
-<th>Description</th>
-</tr>
-</thead>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i data-lucide="users" size="28"></i>
+                </div>
+                <div class="stat-info">
+                    <p>Total Active Students</p>
+                    <h3 id="stat-students">0</h3>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="color: var(--secondary-color);">
+                    <i data-lucide="file-code-2" size="28"></i>
+                </div>
+                <div class="stat-info">
+                    <p>Total Submissions</p>
+                    <h3 id="stat-submissions">0</h3>
+                </div>
+            </div>
 
-<tbody>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: var(--success);">
+                    <i data-lucide="trophy" size="28"></i>
+                </div>
+                <div class="stat-info">
+                    <p>Highest Assignments Count</p>
+                    <h3 id="stat-highest">0</h3>
+                </div>
+            </div>
+        </div>
 
-<tr>
-<td>Java Setup</td>
-<td>Install Java JDK and VS Code and verify Java works.</td>
-</tr>
+        <!-- Main Content -->
+        <div class="main-grid">
+            
+            <!-- Leaderboard Panel -->
+            <div class="section-panel">
+                <div class="section-header">
+                    <i data-lucide="award" style="color: #fbbf24;"></i>
+                    <h2>Top Performers</h2>
+                </div>
+                <div class="leaderboard-list" id="leaderboard-container">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
 
-<tr>
-<td>Hello World</td>
-<td>Create a Java program that prints Hello World.</td>
-</tr>
+            <!-- Status Matrix Panel -->
+            <div class="section-panel" style="overflow: hidden;">
+                <div class="section-header">
+                    <i data-lucide="check-square" style="color: var(--primary-color);"></i>
+                    <h2>Completion Matrix</h2>
+                </div>
+                <div class="table-container">
+                    <table id="matrix-table">
+                        <thead id="matrix-table-head">
+                            <!-- Dynamically injected headers -->
+                        </thead>
+                        <tbody id="matrix-table-body">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; text-align: right; margin-right: 1rem;">
+                    <a href="admin.html" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 0.5rem 1rem; border-radius: 8px; transition: background 0.2s;">
+                        <i data-lucide="settings" size="16"></i> Admin Panel
+                    </a>
+                </div>
+            </div>
 
-<tr>
-<td>Circle Program</td>
-<td>Program to calculate area and circumference of a circle.</td>
-</tr>
+        </div>
+    </div>
 
-<tr>
-<td>Calculator</td>
-<td>Create a calculator performing basic operations.</td>
-</tr>
-
-<tr>
-<td>GitHub Repo</td>
-<td>Upload calculator project to GitHub.</td>
-</tr>
-
-</tbody>
-
-</table>
-
+    <!-- Custom JS -->
+    <script src="script.js"></script>
 </body>
 </html>
