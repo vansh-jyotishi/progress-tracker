@@ -18,6 +18,9 @@ Papa.parse(CSV_URL, {
 
         document.getElementById('filter-student').addEventListener('change', filterGallery);
         document.getElementById('filter-assignment').addEventListener('change', filterGallery);
+        if(document.getElementById('admin-search')) {
+            document.getElementById('admin-search').addEventListener('input', filterGallery);
+        }
     }
 });
 
@@ -50,11 +53,15 @@ function populateFilters() {
 function filterGallery() {
     const studentFilter = document.getElementById('filter-student').value;
     const assignmentFilter = document.getElementById('filter-assignment').value;
+    const searchInput = document.getElementById('admin-search') ? document.getElementById('admin-search').value.toLowerCase() : '';
 
     const filtered = allSubmissions.filter(sub => {
-        const mStudent = studentFilter === 'ALL' || sub["Student Name"].trim() === studentFilter;
+        const studentName = sub["Student Name"].trim();
+        const rollNum = sub["Roll Number"] ? sub["Roll Number"].trim() : '';
+        const mStudent = studentFilter === 'ALL' || studentName === studentFilter;
         const mAssignment = assignmentFilter === 'ALL' || (sub["Assignment Name"] && sub["Assignment Name"].trim() === assignmentFilter);
-        return mStudent && mAssignment;
+        const mSearch = searchInput === '' || studentName.toLowerCase().includes(searchInput) || rollNum.toLowerCase().includes(searchInput);
+        return mStudent && mAssignment && mSearch;
     });
 
     renderGallery(filtered);
@@ -90,12 +97,8 @@ function renderGallery(submissions) {
         
         let previewContent = '';
         if (driveId) {
-            // Use Google Drive thumbnail API trick. Fallback to export=view if thumbnail not generated.
-            previewContent = `<img src="https://drive.google.com/uc?id=${driveId}&export=view" onerror="if(this.src!=='https://drive.google.com/thumbnail?id=${driveId}&sz=w600-h600'){this.src='https://drive.google.com/thumbnail?id=${driveId}&sz=w600-h600';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}" alt="Output Screenshot" loading="lazy">
-                              <div class="no-image" style="display: none;">
-                                  <i data-lucide="image-off" size="32"></i>
-                                  <span>Image cannot be embedded</span>
-                              </div>`;
+            // Use iframe preview for reliable loading
+            previewContent = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" width="100%" height="200" style="border: none; display: block;" allow="autoplay"></iframe>`;
         } else if (screenshotUrl) {
             previewContent = `<div class="no-image">
                                   <i data-lucide="external-link" size="32"></i>

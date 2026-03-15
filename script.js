@@ -35,6 +35,7 @@ let currentStudentData = [];
 let currentStudentMap = {};
 let currentAssignmentsList = [];
 let searchQuery = "";
+let studentChart = null;
 
 function processData(data) {
     // Valid entries only
@@ -264,6 +265,10 @@ function openTaskDetails(studentName, assignmentName) {
     document.getElementById('modal-stat-fraction').innerText = "";
     document.getElementById('modal-stat-last-active').innerText = submission.timestamp;
 
+    // Hide chart in single task view
+    const chartSection = document.getElementById('modal-chart-section');
+    if (chartSection) chartSection.style.display = 'none';
+
     // Build Submissions List - Just this one
     const listContainer = document.getElementById('modal-submissions-list');
     listContainer.innerHTML = '';
@@ -351,6 +356,65 @@ function openStudentProfile(studentName) {
     
     document.getElementById('modal-stat-percent').innerText = `${percent}%`;
     document.getElementById('modal-stat-fraction').innerText = `(${completed}/${totalAssignments})`;
+
+    // Show chart in profile view
+    const chartSection = document.getElementById('modal-chart-section');
+    if (chartSection) chartSection.style.display = 'block';
+
+    const totalStudents = currentStudentData.length;
+    const classAvg = totalStudents > 0 ? (currentStudentData.reduce((acc, s) => acc + s.score, 0) / totalStudents).toFixed(1) : 0;
+    const highestScore = totalStudents > 0 ? currentStudentData[0].score : 0;
+
+    // Destroy existing chart to prevent overlay bugs
+    if (studentChart) {
+        studentChart.destroy();
+    }
+
+    const ctx = document.getElementById('student-progress-chart');
+    if (ctx) {
+        studentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['This Student', 'Class Average', 'Highest'],
+                datasets: [{
+                    label: 'Completed Tasks',
+                    data: [completed, classAvg, highestScore],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(156, 163, 175, 0.4)',
+                        'rgba(16, 185, 129, 0.6)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: totalAssignments,
+                        ticks: { stepSize: 1, color: 'rgba(255,255,255,0.5)' },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    x: {
+                        ticks: { color: 'rgba(255,255,255,0.7)' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.raw + " Tasks"; }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     // Get last active
     // Submissions usually chronologically in CSV, but parse dates to be safe

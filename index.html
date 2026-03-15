@@ -16,6 +16,9 @@
     <!-- PapaParse for CSV processing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
+    <!-- Chart.js for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
@@ -30,6 +33,7 @@
         <h2>Syncing Data...</h2>
     </div>
 
+    <!-- Moved footer note back to bottom -->
     <div class="container">
         <!-- Header -->
         <header>
@@ -156,10 +160,18 @@
                         <span id="modal-stat-last-active" class="modal-stat-value" style="font-size: 1.1rem;">-</span>
                     </div>
                 </div>
+            
+            <div class="chart-section" id="modal-chart-section" style="margin-top: 1.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Performance Comparison</h4>
+                <div style="height: 180px; width: 100%;">
+                    <canvas id="student-progress-chart"></canvas>
+                </div>
+            </div>
 
-                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Submission History</h3>
-                <div id="modal-submissions-list" class="submissions-list">
-                    <!-- Dynamic Submissions -->
+            <div class="history-section">
+                <h4 style="margin-bottom: 1rem;">Submission History</h4>
+                <div class="submissions-list" id="modal-submissions-list">
+                    <!-- Dynamically populated -->
                 </div>
             </div>
         </div>

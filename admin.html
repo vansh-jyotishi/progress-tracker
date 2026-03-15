@@ -203,6 +203,11 @@
 
         <!-- Filter Bar -->
         <div class="filter-bar">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 200px;">
+                <i data-lucide="search" style="color: var(--text-muted);"></i>
+                <input type="text" id="admin-search" placeholder="Search by name or roll..." style="flex: 1; border: none; background: transparent; color: var(--text-main); outline: none;">
+            </div>
+            <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
             <i data-lucide="filter" style="color: var(--text-muted);"></i>
             <select id="filter-student">
                 <option value="ALL">All Students</option>
