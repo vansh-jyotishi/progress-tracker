@@ -2,14 +2,15 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Task Submission</title>
+<title>Assignment Submission</title>
 
 <style>
 
 body{
-font-family:Arial;
+font-family: Arial;
 background:#eef2f7;
 padding:40px;
+margin:0;
 }
 
 .card{
@@ -17,7 +18,7 @@ max-width:700px;
 margin:auto;
 background:white;
 padding:25px;
-border-radius:10px;
+border-radius:12px;
 box-shadow:0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -26,23 +27,29 @@ margin-top:0;
 }
 
 .info{
-margin-bottom:10px;
+margin:10px 0;
+font-size:16px;
+}
+
+a.link{
+color:#3498db;
+text-decoration:none;
+}
+
+a.link:hover{
+text-decoration:underline;
 }
 
 img{
 max-width:100%;
+margin-top:15px;
 border-radius:8px;
-margin-top:10px;
+border:1px solid #ddd;
 }
 
-a.button{
-display:inline-block;
-padding:10px 15px;
-background:#2c3e50;
-color:white;
-border-radius:6px;
-text-decoration:none;
-margin-top:10px;
+.notfound{
+color:red;
+font-weight:bold;
 }
 
 </style>
@@ -53,67 +60,97 @@ margin-top:10px;
 
 <div class="card">
 
-<h2 id="taskTitle"></h2>
+<h2 id="taskTitle">Assignment</h2>
 
 <p class="info"><b>Student:</b> <span id="studentName"></span></p>
 
 <p class="info"><b>Submission Time:</b> <span id="time"></span></p>
 
-<p class="info"><b>GitHub Link:</b> <a id="githubLink" target="_blank"></a></p>
+<p class="info"><b>GitHub Link:</b> 
+<a id="githubLink" class="link" target="_blank"></a>
+</p>
 
-<p class="info"><b>Java File:</b> <a id="javaFile" target="_blank">Download</a></p>
+<p class="info"><b>Java File:</b> 
+<a id="javaFile" class="link" target="_blank">Download</a>
+</p>
 
 <p class="info"><b>Screenshot:</b></p>
 
 <img id="screenshot">
 
+<p id="error" class="notfound"></p>
+
 </div>
 
 <script>
 
-const SHEET_URL="YOUR_CSV_LINK";
+const SHEET_URL = "YOUR_CSV_LINK";
 
-const params=new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 
-const student=params.get("student");
+const student = params.get("student");
+const task = params.get("task");
 
-const task=params.get("task");
-
-document.getElementById("taskTitle").innerText=task;
-
-document.getElementById("studentName").innerText=student;
+document.getElementById("studentName").innerText = student || "";
+document.getElementById("taskTitle").innerText = task || "";
 
 fetch(SHEET_URL)
-.then(res=>res.text())
-.then(data=>{
+.then(res => res.text())
+.then(data => {
 
-const rows=data.split("\n").slice(1);
+const rows = data.split("\n").slice(1);
 
-rows.forEach(row=>{
+let found = false;
 
-const cols=row.split(",");
+rows.forEach(row => {
 
-const time=cols[0];
-const name=cols[1];
-const assignment=cols[3];
-const github=cols[4];
-const javaFile=cols[5];
-const screenshot=cols[6];
+const cols = row.split(",");
 
-if(name===student && assignment===task){
+const time = cols[0];
+const name = cols[1];
+const assignment = cols[3];
+const javaFile = cols[4];
+const github = cols[5];
+const screenshot = cols[6];
 
-document.getElementById("time").innerText=time;
+if(name && assignment){
 
-document.getElementById("githubLink").href=github;
-document.getElementById("githubLink").innerText=github;
+if(name.trim() === student.trim() && assignment.trim() === task.trim()){
 
-document.getElementById("javaFile").href=javaFile;
+found = true;
 
-document.getElementById("screenshot").src=screenshot;
+document.getElementById("time").innerText = time;
+
+if(github){
+document.getElementById("githubLink").href = github;
+document.getElementById("githubLink").innerText = github;
+}
+
+if(javaFile){
+document.getElementById("javaFile").href = javaFile;
+}
+
+if(screenshot){
+
+const idMatch = screenshot.match(/[-\w]{25,}/);
+
+if(idMatch){
+document.getElementById("screenshot").src =
+"https://drive.google.com/uc?export=view&id=" + idMatch[0];
+}
+
+}
+
+}
 
 }
 
 });
+
+if(!found){
+document.getElementById("error").innerText =
+"No submission found for this task.";
+}
 
 });
 
