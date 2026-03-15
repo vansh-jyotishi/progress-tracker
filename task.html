@@ -134,20 +134,24 @@ document.getElementById("javaFile").href = javaFile;
 
 if(screenshot){
 
-const idMatch = screenshot.match(/[-\w]{25,}/);
+let fileId = "";
 
-if(idMatch){
+// case 1: open?id=
+if(screenshot.includes("open?id=")){
+fileId = screenshot.split("open?id=")[1];
+}
+
+// case 2: /file/d/
+else if(screenshot.includes("/file/d/")){
+fileId = screenshot.split("/file/d/")[1].split("/")[0];
+}
+
+if(fileId){
 document.getElementById("screenshot").src =
-"https://drive.google.com/uc?export=view&id=" + idMatch[0];
+"https://drive.google.com/uc?export=view&id=" + fileId;
 }
 
 }
-
-}
-
-}
-
-});
 
 if(!found){
 document.getElementById("error").innerText =
