@@ -61,12 +61,16 @@ function processData(data) {
         currentStudentMap[student].assignmentsCompleted.add(assignment);
         
         // Store the submission details
+        // CSV headers:
+        // upload .java file with appropriate naming
+        // GitHub Repository Link
+        // Upload Screenshot of Output
         currentStudentMap[student].submissions.push({
             assignment: assignment,
             timestamp: row["Timestamp"],
-            javaFile: row["Java File Upload"],
-            githubLink: row["Github Repository Link"],
-            outputScreenshot: row["Output Screenshot"]
+            javaFile: row["upload .java file with appropriate naming"],
+            githubLink: row["GitHub Repository Link"],
+            outputScreenshot: row["Upload Screenshot of Output"]
         });
         
         totalSubmissions++;
@@ -143,31 +147,6 @@ function setupEventListeners() {
             if (e.target === modal) modal.classList.remove('active');
         };
     }
-
-    // Export PDF
-    const exportBtn = document.getElementById('export-btn');
-    if (exportBtn) {
-        exportBtn.onclick = () => {
-            const element = document.querySelector('.main-grid');
-            const opt = {
-                margin:       10,
-                filename:     'student-leaderboard-export.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            };
-            
-            // Add a temporary class to fix layout for PDF if needed
-            element.style.background = 'var(--bg-color)';
-            element.style.padding = '20px';
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Reset styles
-                element.style.background = '';
-                element.style.padding = '';
-            });
-        };
-    }
 }
 
 function renderLeaderboard(students, totalAssignments) {
@@ -237,11 +216,10 @@ function renderStatusMatrix(studentArray, studentMap, assignmentsList) {
         const studentInfo = studentMap[student.name];
         
         const tr = document.createElement('tr');
-        tr.className = 'clickable-row';
-        tr.onclick = () => openStudentProfile(student.name);
-
+        
+        // Only the first cell (Name/Roll) should open the full modal
         let rowHTML = `
-            <td>
+            <td class="clickable-cell" onclick="openStudentProfile('${student.name}')" style="cursor: pointer; transition: background 0.2s;">
                 <div style="font-weight: 500;">${student.name}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">${student.rollNumber}</div>
             </td>
@@ -250,7 +228,14 @@ function renderStatusMatrix(studentArray, studentMap, assignmentsList) {
         assignmentsList.forEach(assignment => {
             const completed = studentInfo.assignmentsCompleted.has(assignment);
             if (completed) {
-                rowHTML += `<td style="text-align: center;"><i data-lucide="check-circle" style="color: var(--success);" size="22"></i></td>`;
+                // Find the specific submission data
+                const subData = studentInfo.submissions.find(s => s.assignment === assignment);
+                // We'll pass the student name and assignment name to a new function
+                rowHTML += `
+                    <td style="text-align: center; cursor: pointer; transition: transform 0.2s;" class="clickable-cell matrix-check" onclick="openTaskDetails('${student.name}', '${assignment}')">
+                        <i data-lucide="check-circle" style="color: var(--success);" size="22"></i>
+                    </td>
+                `;
             } else {
                 rowHTML += `<td style="text-align: center;"><i data-lucide="x-circle" style="color: var(--text-muted); opacity: 0.3;" size="22"></i></td>`;
             }
@@ -259,6 +244,94 @@ function renderStatusMatrix(studentArray, studentMap, assignmentsList) {
         tr.innerHTML = rowHTML;
         tbody.appendChild(tr);
     });
+}
+
+function openTaskDetails(studentName, assignmentName) {
+    const student = currentStudentMap[studentName];
+    if (!student) return;
+
+    const submission = student.submissions.find(s => s.assignment === assignmentName);
+    if (!submission) return;
+
+    const modal = document.getElementById('profile-modal');
+    
+    // Header
+    document.getElementById('modal-student-name').innerText = `${student.name} - ${assignmentName}`;
+    document.getElementById('modal-student-roll').innerText = student.rollNumber || "No Roll Number";
+
+    // Stats - hide completion stats for single task view, just show submitted time
+    document.getElementById('modal-stat-percent').innerText = "Submitted";
+    document.getElementById('modal-stat-fraction').innerText = "";
+    document.getElementById('modal-stat-last-active').innerText = submission.timestamp;
+
+    // Build Submissions List - Just this one
+    const listContainer = document.getElementById('modal-submissions-list');
+    listContainer.innerHTML = '';
+
+    const item = document.createElement('div');
+    item.className = 'submission-item';
+    
+    let linksHTML = '';
+    if(submission.githubLink) {
+        linksHTML += `<a href="${submission.githubLink}" target="_blank" class="submission-link"><i data-lucide="github" size="14"></i> Repository</a>`;
+    }
+    if(submission.javaFile && submission.javaFile.trim() !== '') {
+        linksHTML += `<a href="${submission.javaFile}" target="_blank" class="submission-link"><i data-lucide="file-code" size="14"></i> Files</a>`;
+    }
+    
+    let imageHTML = '';
+    if(submission.outputScreenshot && submission.outputScreenshot.trim() !== '') {
+        let imgUrl = submission.outputScreenshot.trim();
+        let fileId = null;
+        
+        // Extract the Google Drive File ID
+        if (imgUrl.includes('drive.google.com/open?id=')) {
+            fileId = imgUrl.split('open?id=')[1].split('&')[0];
+        } else if (imgUrl.includes('drive.google.com/file/d/')) {
+            const match = imgUrl.match(/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (match) fileId = match[1];
+        } else if (imgUrl.includes('drive.google.com/uc?id=')) {
+            fileId = imgUrl.split('uc?id=')[1].split('&')[0];
+        }
+
+        // Use Google Drive's native iframe preview to completely bypass CORB/CORS restrictions
+        if (fileId) {
+            const iframeUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+            imageHTML = `
+                <div style="margin-top: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);">
+                    <div style="padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                        <span>Output Screenshot</span>
+                        <a href="${submission.outputScreenshot}" target="_blank" style="color: var(--primary-color); text-decoration: none;"><i data-lucide="external-link" size="14"></i> Open Full</a>
+                    </div>
+                    <iframe src="${iframeUrl}" width="100%" height="300" style="border: none; display: block;" allow="autoplay"></iframe>
+                </div>
+            `;
+        } else {
+            // Fallback for non-drive images
+            imageHTML = `
+                <div style="margin-top: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);">
+                    <div style="padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                        <span>Output Screenshot</span>
+                        <a href="${submission.outputScreenshot}" target="_blank" style="color: var(--primary-color); text-decoration: none;"><i data-lucide="external-link" size="14"></i> Open Full</a>
+                    </div>
+                    <img src="${imgUrl}" alt="Output Screenshot" referrerpolicy="no-referrer" style="width: 100%; max-height: 400px; object-fit: contain; display: block;">
+                </div>
+            `;
+        }
+    }
+
+    item.innerHTML = `
+        <div class="submission-header">
+            <span class="submission-title">${submission.assignment} Status</span>
+            <span class="submission-time" style="color: var(--success);"><i data-lucide="check" size="14"></i> Verified</span>
+        </div>
+        ${linksHTML ? `<div class="submission-links" style="margin-top: 1rem;">${linksHTML}</div>` : (imageHTML ? '' : '<p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">No attachments associated with this task.</p>')}
+        ${imageHTML}
+    `;
+    listContainer.appendChild(item);
+
+    lucide.createIcons();
+    modal.classList.add('active');
 }
 
 function openStudentProfile(studentName) {
