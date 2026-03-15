@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Java Course Assignment Tracker</title>
+<title>Admin Assignment Tracker</title>
 
 <style>
 
 body{
 font-family:Arial;
-background:#f5f7fb;
+background:#f4f6f8;
 padding:40px;
 }
 
@@ -19,7 +19,6 @@ table{
 width:100%;
 border-collapse:collapse;
 background:white;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 
 th,td{
@@ -35,12 +34,12 @@ color:white;
 
 .complete{
 color:green;
-font-size:18px;
+font-weight:bold;
 }
 
 .incomplete{
 color:red;
-font-size:18px;
+font-weight:bold;
 }
 
 </style>
@@ -48,21 +47,19 @@ font-size:18px;
 
 <body>
 
-<h1>Java Course Assignment Tracker</h1>
+<h1>Assignment Tracker</h1>
 
 <table id="tracker">
 
 <thead>
-
 <tr>
 <th>Student</th>
 <th>Java Setup</th>
 <th>Hello World</th>
 <th>Circle Program</th>
-<th>Calculator</th>
-<th>GitHub Repo</th>
+<th>Basic Calculator</th>
+<th>GitHub Upload</th>
 </tr>
-
 </thead>
 
 <tbody></tbody>
@@ -71,14 +68,14 @@ font-size:18px;
 
 <script>
 
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
+const sheetURL="PASTE_YOUR_CSV_LINK";
 
-const assignments = [
+const assignments=[
 "Java Setup",
-"Hello World Program",
-"Circle Program",
-"Basic Calculator",
-"GitHub Repository Upload"
+"Hello World",
+"Circle",
+"Calculator",
+"GitHub"
 ];
 
 fetch(sheetURL)
@@ -96,6 +93,8 @@ const cols=row.split(",");
 const name=cols[1];
 const assignment=cols[3];
 
+if(!name) return;
+
 if(!students[name]){
 students[name]=new Set();
 }
@@ -110,19 +109,23 @@ Object.keys(students).forEach(student=>{
 
 const tr=document.createElement("tr");
 
-let rowHTML=`<td>${student}</td>`;
+let html=`<td>${student}</td>`;
 
 assignments.forEach(task=>{
 
-if(students[student].has(task)){
-rowHTML+=`<td class="complete">✅</td>`;
+const match=[...students[student]].some(a =>
+a.toLowerCase().includes(task.toLowerCase())
+);
+
+if(match){
+html+=`<td class="complete">✅</td>`;
 }else{
-rowHTML+=`<td class="incomplete">❌</td>`;
+html+=`<td class="incomplete">❌</td>`;
 }
 
 });
 
-tr.innerHTML=rowHTML;
+tr.innerHTML=html;
 
 table.appendChild(tr);
 
