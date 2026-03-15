@@ -1,92 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Assignment Submission</title>
-
-<style>
-
-body{
-font-family: Arial;
-background:#eef2f7;
-padding:40px;
-margin:0;
-}
-
-.card{
-max-width:700px;
-margin:auto;
-background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-
-h2{
-margin-top:0;
-}
-
-.info{
-margin:10px 0;
-font-size:16px;
-}
-
-a.link{
-color:#3498db;
-text-decoration:none;
-}
-
-a.link:hover{
-text-decoration:underline;
-}
-
-img{
-max-width:100%;
-margin-top:15px;
-border-radius:8px;
-border:1px solid #ddd;
-}
-
-.notfound{
-color:red;
-font-weight:bold;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="card">
-
-<h2 id="taskTitle">Assignment</h2>
-
-<p class="info"><b>Student:</b> <span id="studentName"></span></p>
-
-<p class="info"><b>Submission Time:</b> <span id="time"></span></p>
-
-<p class="info"><b>GitHub Link:</b> 
-<a id="githubLink" class="link" target="_blank"></a>
-</p>
-
-<p class="info"><b>Java File:</b> 
-<a id="javaFile" class="link" target="_blank">Download</a>
-</p>
-
-<p class="info"><b>Screenshot:</b></p>
-
-<img id="screenshot">
-
-<p id="error" class="notfound"></p>
-
-</div>
-
-<script>
-
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
-
-
 
 const params = new URLSearchParams(window.location.search);
 
@@ -149,10 +61,14 @@ fileId = screenshot.split("/file/d/")[1].split("/")[0];
 if(fileId){
 document.getElementById("screenshot").src =
 "https://drive.google.com/uc?export=view&id=" + fileId;
-;
 }
 
 }
+
+}
+
+}
+
 });
 
 if(!found){
@@ -160,8 +76,3 @@ document.getElementById("error").innerText = "No submission found for this task.
 }
 
 });
-
-</script>
-
-</body>
-</html>
