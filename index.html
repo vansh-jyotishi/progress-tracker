@@ -7,32 +7,34 @@
 <style>
 
 body{
-font-family: Arial;
-background:#f4f6f8;
+font-family:Arial;
+background:#eef2f7;
+margin:0;
 padding:40px;
 }
 
 h1{
 text-align:center;
+margin-bottom:30px;
 }
 
 .container{
-max-width:900px;
+max-width:1000px;
 margin:auto;
 }
 
 .card{
 background:white;
-padding:20px;
+padding:25px;
 margin-bottom:25px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
 .progress{
-height:20px;
+height:22px;
 background:#ddd;
-border-radius:10px;
+border-radius:20px;
 overflow:hidden;
 margin-top:10px;
 }
@@ -41,17 +43,26 @@ margin-top:10px;
 height:100%;
 background:#4CAF50;
 width:0%;
+transition:width 0.4s;
+}
+
+input{
+padding:10px;
+width:250px;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:10px;
+margin-top:15px;
 }
 
 th,td{
-padding:10px;
-border-bottom:1px solid #ddd;
+padding:12px;
+border-bottom:1px solid #eee;
 text-align:center;
 }
 
@@ -60,8 +71,12 @@ background:#2c3e50;
 color:white;
 }
 
+.rank1{color:#e67e22;font-weight:bold;}
+.rank2{color:#3498db;}
+.rank3{color:#2ecc71;}
+
 .badge{
-font-size:20px;
+font-size:22px;
 margin-top:10px;
 }
 
@@ -73,12 +88,15 @@ margin-top:10px;
 
 <div class="container">
 
-<h1>Java Course Dashboard</h1>
+<h1>🚀 Java Course Dashboard</h1>
 
 <div class="card">
+
 <h2>Your Progress</h2>
 
-<input id="studentInput" placeholder="Enter your name">
+<p>Type your name to see your progress</p>
+
+<input id="studentName" placeholder="Enter your name">
 
 <div class="progress">
 <div class="bar" id="progressBar"></div>
@@ -90,10 +108,13 @@ margin-top:10px;
 
 </div>
 
+
 <div class="card">
-<h2>Leaderboard</h2>
+
+<h2>🏆 Leaderboard</h2>
 
 <table>
+
 <thead>
 <tr>
 <th>Rank</th>
@@ -110,15 +131,22 @@ margin-top:10px;
 
 </div>
 
+
 <script>
 
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
+/* -------- CONFIGURATION -------- */
 
-const totalAssignments = 10;
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
 
-let studentData = {};
+const TOTAL_ASSIGNMENTS = 10;
 
-fetch(sheetURL)
+/* -------- STORAGE -------- */
+
+let students = {};
+
+/* -------- LOAD DATA FROM GOOGLE SHEET -------- */
+
+fetch(SHEET_URL)
 .then(res => res.text())
 .then(data => {
 
@@ -131,11 +159,13 @@ const cols = row.split(",");
 const name = cols[1];
 const assignment = cols[3];
 
-if(!studentData[name]){
-studentData[name] = new Set();
+if(!name) return;
+
+if(!students[name]){
+students[name] = new Set();
 }
 
-studentData[name].add(assignment);
+students[name].add(assignment);
 
 });
 
@@ -143,9 +173,11 @@ buildLeaderboard();
 
 });
 
+/* -------- LEADERBOARD -------- */
+
 function buildLeaderboard(){
 
-const sorted = Object.entries(studentData)
+const sorted = Object.entries(students)
 .map(([name,set]) => [name,set.size])
 .sort((a,b)=>b[1]-a[1]);
 
@@ -155,10 +187,16 @@ table.innerHTML="";
 
 sorted.forEach((student,index)=>{
 
+let rankClass="";
+
+if(index===0) rankClass="rank1";
+if(index===1) rankClass="rank2";
+if(index===2) rankClass="rank3";
+
 const tr=document.createElement("tr");
 
 tr.innerHTML=`
-<td>${index+1}</td>
+<td class="${rankClass}">${index+1}</td>
 <td>${student[0]}</td>
 <td>${student[1]}</td>
 `;
@@ -169,31 +207,47 @@ table.appendChild(tr);
 
 }
 
-document.getElementById("studentInput").addEventListener("input",function(){
+/* -------- PROGRESS TRACKER -------- */
 
-const name=this.value;
+document.getElementById("studentName")
+.addEventListener("input",function(){
 
-if(!studentData[name]) return;
+const name=this.value.trim();
 
-const completed=studentData[name].size;
+if(!students[name]){
+document.getElementById("progressText").innerText="Student not found";
+document.getElementById("progressBar").style.width="0%";
+document.getElementById("badge").innerText="";
+return;
+}
 
-const percent=(completed/totalAssignments)*100;
+const completed = students[name].size;
 
-document.getElementById("progressBar").style.width=percent+"%";
+const percent = Math.round((completed/TOTAL_ASSIGNMENTS)*100);
 
-document.getElementById("progressText").innerText=
-completed+" / "+totalAssignments+" assignments completed";
+document.getElementById("progressBar").style.width = percent+"%";
+
+document.getElementById("progressText").innerText =
+completed+" / "+TOTAL_ASSIGNMENTS+" assignments completed ("+percent+"%)";
+
+updateBadge(completed);
+
+});
+
+/* -------- BADGE SYSTEM -------- */
+
+function updateBadge(count){
 
 let badge="";
 
-if(completed>=8) badge="🥇 Java Master";
-else if(completed>=5) badge="🥈 Intermediate";
-else if(completed>=2) badge="🥉 Beginner";
+if(count>=8) badge="🥇 Java Master";
+else if(count>=5) badge="🥈 Intermediate";
+else if(count>=2) badge="🥉 Beginner";
 else badge="🚀 Getting Started";
 
-document.getElementById("badge").innerText=badge;
+document.getElementById("badge").innerText = badge;
 
-});
+}
 
 </script>
 
