@@ -10,7 +10,7 @@ body{
 font-family:Arial;
 background:#eef2f7;
 margin:0;
-padding:40px;
+padding:30px;
 }
 
 h1{
@@ -19,16 +19,22 @@ margin-bottom:30px;
 }
 
 .container{
-max-width:1000px;
+max-width:1100px;
 margin:auto;
 }
 
 .card{
 background:white;
-padding:25px;
+padding:20px;
 margin-bottom:25px;
-border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,0.08);
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+
+select{
+padding:10px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
 .progress{
@@ -41,27 +47,18 @@ margin-top:10px;
 
 .bar{
 height:100%;
-background:#4CAF50;
+background:#27ae60;
 width:0%;
-transition:width 0.4s;
-}
-
-input{
-padding:10px;
-width:250px;
-margin-top:10px;
-border-radius:6px;
-border:1px solid #ccc;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:15px;
+margin-top:10px;
 }
 
 th,td{
-padding:12px;
+padding:10px;
 border-bottom:1px solid #eee;
 text-align:center;
 }
@@ -92,11 +89,17 @@ margin-top:10px;
 
 <div class="card">
 
-<h2>Your Progress</h2>
+<h2>Select Student</h2>
 
-<p>Type your name to see your progress</p>
+<select id="studentSelect"></select>
 
-<input id="studentName" placeholder="Enter your name">
+</div>
+
+<div class="card">
+
+<h2>Student Profile</h2>
+
+<p id="studentRank"></p>
 
 <div class="progress">
 <div class="bar" id="progressBar"></div>
@@ -108,6 +111,25 @@ margin-top:10px;
 
 </div>
 
+<div class="card">
+
+<h2>Assignment History</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Task</th>
+<th>Status</th>
+<th>Submitted At</th>
+</tr>
+</thead>
+
+<tbody id="taskTable"></tbody>
+
+</table>
+
+</div>
 
 <div class="card">
 
@@ -119,7 +141,7 @@ margin-top:10px;
 <tr>
 <th>Rank</th>
 <th>Student</th>
-<th>Assignments Completed</th>
+<th>Completed</th>
 </tr>
 </thead>
 
@@ -131,74 +153,111 @@ margin-top:10px;
 
 </div>
 
-
 <script>
-
-/* -------- CONFIGURATION -------- */
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQisfAjXtdhgNsKx0tRWZfxpKE3ZqnTko7Nza9JI0Kk5F4Syl58jky7G0iOoNy5L5Zzyr9jO16rX1Np/pub?gid=1152285208&single=true&output=csv";
 
-const TOTAL_ASSIGNMENTS = 10;
 
-/* -------- STORAGE -------- */
+const TASKS=[
+"Java Setup",
+"Hello World",
+"Circle Program",
+"Calculator",
+"GitHub Repo"
+];
 
-let students = {};
-
-/* -------- LOAD DATA FROM GOOGLE SHEET -------- */
+let students={};
 
 fetch(SHEET_URL)
-.then(res => res.text())
-.then(data => {
+.then(res=>res.text())
+.then(data=>{
 
-const rows = data.split("\n").slice(1);
+const rows=data.split("\n").slice(1);
 
-rows.forEach(row => {
+rows.forEach(row=>{
 
-const cols = row.split(",");
+const cols=row.split(",");
 
-const name = cols[1];
-const assignment = cols[3];
+const time=cols[0];
+const name=cols[1];
+const assignment=cols[3];
 
 if(!name) return;
 
 if(!students[name]){
-students[name] = new Set();
+students[name]={};
 }
 
-students[name].add(assignment);
+students[name][assignment]=time;
 
 });
 
+initDropdown();
 buildLeaderboard();
 
 });
 
-/* -------- LEADERBOARD -------- */
 
-function buildLeaderboard(){
+function initDropdown(){
 
-const sorted = Object.entries(students)
-.map(([name,set]) => [name,set.size])
-.sort((a,b)=>b[1]-a[1]);
+const select=document.getElementById("studentSelect");
 
-const table = document.getElementById("leaderboard");
+select.innerHTML="<option>Select student</option>";
+
+Object.keys(students).forEach(name=>{
+
+const opt=document.createElement("option");
+
+opt.value=name;
+opt.innerText=name;
+
+select.appendChild(opt);
+
+});
+
+select.addEventListener("change",()=>loadStudent(select.value));
+
+}
+
+
+function loadStudent(name){
+
+const data=students[name];
+
+const completed=Object.keys(data).length;
+
+const percent=Math.round((completed/TASKS.length)*100);
+
+document.getElementById("progressBar").style.width=percent+"%";
+
+document.getElementById("progressText").innerText=
+completed+" / "+TASKS.length+" assignments completed";
+
+updateBadge(completed);
+
+buildTaskTable(name);
+
+showRank(name);
+
+}
+
+
+function buildTaskTable(name){
+
+const table=document.getElementById("taskTable");
 
 table.innerHTML="";
 
-sorted.forEach((student,index)=>{
+TASKS.forEach(task=>{
 
-let rankClass="";
-
-if(index===0) rankClass="rank1";
-if(index===1) rankClass="rank2";
-if(index===2) rankClass="rank3";
+const submitted=students[name][task];
 
 const tr=document.createElement("tr");
 
 tr.innerHTML=`
-<td class="${rankClass}">${index+1}</td>
-<td>${student[0]}</td>
-<td>${student[1]}</td>
+<td>${task}</td>
+<td>${submitted?"✅ Submitted":"❌ Missing"}</td>
+<td>${submitted?submitted:"-"}</td>
 `;
 
 table.appendChild(tr);
@@ -207,45 +266,64 @@ table.appendChild(tr);
 
 }
 
-/* -------- PROGRESS TRACKER -------- */
 
-document.getElementById("studentName")
-.addEventListener("input",function(){
+function buildLeaderboard(){
 
-const name=this.value.trim();
+const sorted=Object.entries(students)
+.map(([name,data])=>[name,Object.keys(data).length])
+.sort((a,b)=>b[1]-a[1]);
 
-if(!students[name]){
-document.getElementById("progressText").innerText="Student not found";
-document.getElementById("progressBar").style.width="0%";
-document.getElementById("badge").innerText="";
-return;
-}
+const table=document.getElementById("leaderboard");
 
-const completed = students[name].size;
+table.innerHTML="";
 
-const percent = Math.round((completed/TOTAL_ASSIGNMENTS)*100);
+sorted.forEach((s,i)=>{
 
-document.getElementById("progressBar").style.width = percent+"%";
+let rankClass="";
 
-document.getElementById("progressText").innerText =
-completed+" / "+TOTAL_ASSIGNMENTS+" assignments completed ("+percent+"%)";
+if(i===0) rankClass="rank1";
+if(i===1) rankClass="rank2";
+if(i===2) rankClass="rank3";
 
-updateBadge(completed);
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td class="${rankClass}">${i+1}</td>
+<td>${s[0]}</td>
+<td>${s[1]}</td>
+`;
+
+table.appendChild(tr);
 
 });
 
-/* -------- BADGE SYSTEM -------- */
+}
+
+
+function showRank(name){
+
+const sorted=Object.entries(students)
+.map(([n,data])=>[n,Object.keys(data).length])
+.sort((a,b)=>b[1]-a[1]);
+
+const rank=sorted.findIndex(s=>s[0]===name)+1;
+
+document.getElementById("studentRank").innerText=
+"Rank: #"+rank;
+
+}
+
 
 function updateBadge(count){
 
 let badge="";
 
-if(count>=8) badge="🥇 Java Master";
-else if(count>=5) badge="🥈 Intermediate";
+if(count>=4) badge="🥇 Java Master";
+else if(count>=3) badge="🥈 Intermediate";
 else if(count>=2) badge="🥉 Beginner";
 else badge="🚀 Getting Started";
 
-document.getElementById("badge").innerText = badge;
+document.getElementById("badge").innerText=badge;
 
 }
 
